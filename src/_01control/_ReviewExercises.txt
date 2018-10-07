@@ -10,10 +10,45 @@ R1.5 The following are all benefits to using Java over machine code:
 
 
 R2.3 Translating math expressions to Java.  See R2.4 for inspiration.
+
+a) s = s0 + v0 * t + 0.5 * g * t * t
+b) 4 * Math.pow(Math.PI, 2) * Math.pow(a, 3) / (p * p * (m1 + m2))
+c) fv = pv * Math.pow(1 + int/100, yrs)
+d) c = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(gamma))
+
 R2.6 Order of precedence, and integer division.
+
+a) 8
+b) 1
+c) 17
+d) 17.5
+e) 17
+f) 18
+
 R2.10 Formatting. Hint: DecimalFormat object.
+
+The programmer asked to display the variable 'change' exactly, but the binary system
+doesn't have an exact representation of 0.07.
+
+Since the change is in cents, the programmer could use:
+
+String pattern = "#,###.##";
+DecimalFormat decimalFormat = new DecimalFormat(pattern);
+System.out.println(decimalFormat.format(change));
+
 R2.11 Types expressed in code
+
+2 is an integer, 2.0 is a double, '2' is a character, "2" is a string, "2.0" is a string
+
 R2.15 Math library and the modulus (%) operator
+
+// denote the inputted number by the variable 'inputNumber'
+
+power = Math.log10(inputNumber) // actual power
+intPower = convert power to integer
+print inputNumber % intPower // first digit
+print inputNumber % 10 // last digit
+
 R3.18 Pseudocode
 R4.9 Types of loops
 R4.12 Pseudocode
