@@ -20,6 +20,7 @@ public class P3_21 {
         System.out.print("Please enter income in dollars: ");
         double income = scan.nextDouble();
 
+        // store rates and tiers in arrays
         final double[] RATES = {0.01,0.02,0.03,0.04,0.05,0.06};
         final double[] TIERS = {50000,75000,100000,250000,500000};
 

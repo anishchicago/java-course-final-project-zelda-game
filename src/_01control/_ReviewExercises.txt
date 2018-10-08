@@ -38,14 +38,15 @@ System.out.println(decimalFormat.format(change));
 
 R2.11 Types expressed in code
 
-2 is an integer, 2.0 is a double, '2' is a character, "2" is a string, "2.0" is a string
+2 is an integer, 2.0 is a double, '2' is a character, "2" is a string with "2" inside,
+"2.0" is just a string with "2.0" inside
 
 R2.15 Math library and the modulus (%) operator
 
 // denote the inputted number by the variable 'inputNumber'
 
 power = Math.log10(inputNumber) // actual power
-intPower = convert power to integer
+intPower = convert power to integer ignoring the decimal
 print inputNumber % intPower // first digit
 print inputNumber % 10 // last digit
 
@@ -71,5 +72,36 @@ else
 print grade to console
 
 R4.9 Types of loops
+
+Java supports while, do, and for loop statements.
+
+while: use when the number of intended iterations is not obviously known
+
+do: same as while, except the first iteration will always be executed so use
+only when you want one iteration before checking the loop condition
+
+for: use when the number of intended iterations is known or can be easily
+inferred
+
 R4.12 Pseudocode
+
+
+print "Celsius | Fahrenheit"
+print "--------+-----------"
+for integer iterator 0 to 10, in increments 1
+    integer celsius temperature = iterator * 10
+    print celsius temperature, left padded
+    print " |"
+    integer fahrenheit temperature = celsius temperature * 9/5 + 32
+    print fahrenheit temperature, left padded
+
+
 R4.15 for/while
+
+
+int s = 0;
+int i = 1;
+while (i <= 10) {
+    s = s + i;
+    i ++;
+}
