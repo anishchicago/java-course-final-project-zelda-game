@@ -1,0 +1,4 @@
+Alice;Dinner;$2.00;01/01/2001
+Bert;Conference;$3.00;01/01/2002
+Charlie;Dinner;$4.00;01/01/2003
+Dan;Conference;$5.00;01/01/2004

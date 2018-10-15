@@ -15,6 +15,179 @@ Notice that the varargs parameter "String... strNickNames" must be listed last. 
  String[] strReturnValues = someMethod(99, "Jim", "Jamie", "James", "Jamey", "Jimmy", "Jimbo");
 
 
+R5.8 Pseudocode
+
+(suppose phoneNum is passed as an argument)
+
+create a string variable actualPhoneNum initialized to empty string
+for each letter in phoneNum starting from left to right
+    if letter is a numerical digit
+        append letter to the right of actualPhoneNum
+    else if letter is "A" or "B" or "C"
+        append "2" to the right of actualPhoneNum
+    else if letter is "D" or "E" or "F"
+        append "3" to the right of actualPhoneNum
+    else if letter is "G" or "H" or "I"
+        append "4" to the right of actualPhoneNum
+    else if letter is "J" or "K" or "L"
+        append "5" to the right of actualPhoneNum
+    else if letter is "M" or "N" or "O"
+        append "6" to the right of actualPhoneNum
+    else if letter is "P" or "R" or "S"
+        append "7" to the right of actualPhoneNum
+    else if letter is "T" or "U" or "V"
+        append "8" to the right of actualPhoneNum
+    else if letter is "W" or "X" or "Y"
+        append "9" to the right of actualPhoneNum
+    else
+        return "Error"
+
+return actualPhoneNum
 
 
+R5.10 Variable scope
 
+i and b in main() method are local to main()
+i and n in f() method are local to f()
+a and b in g() method are local to g()
+n and i in g() method are local to the for loop in g()
+
+program prints 27 to console
+
+R5.14 Pass by value versus pass by reference
+
+The contents of x and y in the main() method did not change because primitives like int
+ are passed by value into methods, not by reference. This means that falseSwap simply
+ received the values 3 and 4 respectively, not the addresses of the integers. So
+ in the main method, the variables x and y did not change at all.
+
+R6.6 Arrays, initialize and and out-of-bounds
+
+a) We will get an out of bounds error, because the array indices go from 0 - 9
+so values[10] doesn't exist.
+
+b) The array values hasn't been properly initialized. Need to use the new
+keyword to initialize.
+
+R6.10 ArrayLists rules
+
+a) Cannot put primitive type int into an ArrayList.
+b) Need <Integer> or simply <> followed by () on the right
+c) Need () at the end or (some existing ArrayList) for this to work
+d) No elements have been added to the ArrayList yet so cannot use the set method
+e) Haven't properly initialized the ArrayList using the new keyword
+
+R6.11 Index values
+
+An index is a position in the array
+
+The legal index values are 0 to array length - 1
+
+Bounds error occurs when trying to access an array (get or set)
+by an index that does not exist
+
+
+R6.21 Rotate elements of array pseudocode
+
+new integer variable temp = array[0] // 0 index of variable
+for integer variable i from 0 to length of array - 2, in increments of 1
+    array[i] = array[i + 1]
+array[length of array - 1] = temp
+
+R6.23 Binary insert algorithm
+
+// modified algo from page 286
+
+create a new array newValues with length (values.length + 1)
+
+int low = 0
+int high = values.length - 1
+int pos = 0
+
+repeat while (low <= high)
+    pos = (low + high) / 2 converted to int // Midpoint of the subsequence
+    if (values[pos] == searchedNumber)
+        found = true
+    else if (values[pos] < searchedNumber)
+        low = pos + 1  // Look in second half
+    else
+        high = pos - 1 // Look in first half
+
+newValues[pos] = x
+
+for int i from 0 to pos - 1, incremented by 1
+    newValues[i] = values[i] // copy before pos in place
+
+for int j from pos to values.length-1, incremented by 1
+    newValues[j] = values[j-1] // copy rest of values into newValues
+
+return newValues
+
+
+R6.25 References to arrays
+
+values is an array, which is an object.
+Objects are passed by reference into methods.
+
+The array "numbers" is created properly.
+However the line "values = numbers;" merely points
+the address of the copy of values passed into the method, to
+the address of numbers.
+
+The original array values outside the method hasn't changed!
+
+R7.6 Checked versus unchecked exceptions
+
+A checked exception accounts for an error that the
+programmer could not have avoided, such as an illegal
+user input.
+
+An unchecked exception happens when there is a bug in
+the code, such as Index Out of Bounds.
+
+A checked exception can be caught using the "throws"
+keyword.
+
+R7.7 Checked versus unchecked exceptions
+
+If the code is correct and bug-free, there won't be an
+IndexOutOfBounds exception. The code should be
+constructed so that a non-existed index in an array
+is never accessed, which can be done for example by
+correctly writing for or while loops.
+
+Therefore IndexOutOfBounds is an unchecked exemption,
+and should not be declared when righting the method.
+
+R7.9 Exceptions
+
+If there is no catch clause, then there must be a finally
+clause or else there will be a compile error.
+
+If there is a finally clause and no catch clause, then
+if an exception occurs, the program terminates with the
+normal stack trace printed to console, with the only
+difference that the code in the finally clause will be
+executed before termination.
+
+R7.11 Exceptions
+
+Yes, if a catch clause has caught a particular error, then it would
+have declared the same type as that particular error.
+
+R7.14 Exceptions
+
+According to the Java docs, next can throw:
+NoSuchElementException - if no more tokens are available
+IllegalStateException - if this scanner is closed
+
+nextInt can throw:
+InputMismatchException - if the next token does not match the Integer regular expression,
+ or is out of range
+NoSuchElementException - if input is exhausted
+IllegalStateException - if this scanner is closed
+
+IllegalStateException is unchecked because the program should only ask for input when
+the Scanner object is open.
+
+The others are checked.
