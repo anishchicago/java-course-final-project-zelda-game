@@ -3,7 +3,7 @@ package _02arrays;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class P6_25 {
+public class P6_23 {
 
     public static void main(String[] args) {
 

@@ -16,7 +16,7 @@ public class P4_6 {
         boolean first = true;
         int nextInt;
 
-        while (scan.hasNextLine()) {
+        while (scan.hasNextInt()) {
             nextInt = scan.nextInt();
             if (first) {
                 minimum = nextInt;
@@ -26,6 +26,7 @@ public class P4_6 {
             }
 
         }
+
         System.out.println(minimum);
 
     }
