@@ -7,15 +7,75 @@ Review Exercises: 3 points each. Starting on page 405 of textbook Big Java. Plac
 ReviewExercises.txt located in the root of this project.
 
 R8.1 Encapsulation
+
+Encapsulation refers to the ability to hide the implementation details of a class.
+It is useful because a programmer making use of an existing class
+only needs to interact with the class via the public interface
+(such as get and set methods) rather than worry about the implementation details.
+
 R8.4 Public interface
+
+The public interface is a set of methods, such as the accessor and mutator methods
+of an object's variables, that can be used to interact with the class and
+object instances of the class.
+
+They are difference from the implementation of a class in that these public
+methods can be accessed outside the class and can tie into parts of the same program
+outside the class, whereas the implementation refers to the data structure of the class
+and the particular way that the methods within the class have been defined.
+
 R8.7 Instance versus static
+
+An instance method operates on an object created via the class, whereas a static method
+operates on the class as a whole and is not specific to a particular object created via
+the class (in fact you cannot call a static method via an object).
+
 R8.8 Mutator and accessor
+
+A mutator method changes the value of one or more instance variables,
+i.e. updates an object's data. An accessor retrieves the value without
+making any updates.
+
 R8.9 Implicit parameter
+
+An implicit parameter passed by specifying the object variable (which refers to an instance
+of a class) typically before the method, whereas an explicit parameter is passed typically in
+parenthesis after the method name.
+
 R8.10 Implicit parameter
+
+An instance method can have only one implicit parameter. A static method cannot have any
+implicit parameters. An instance method must have at least the same number of mandatory explicit
+parameters as specified in the implementation of that particular method in the class.
+
 R8.12 Constructors
+
+A class can have an unlimited number of constructors, including none. If a class has more than one
+constructors than the constructor that is used depends on the paremeters (if any) that were supplied
+when instantiating the object.
+
 R8.16 Instance variables
+
+The private implementation is hidden insofar as private instance variables cannot be referred to outside
+the class. I cannot try to access the variable directly anywhere outside the class. That means that I'm
+forced to use the public interface, get and set methods, to find data about a particular object.
+
 R8.19 The this reference
+
+The this reference is an implicit parameter that refers to an instance of the class. It can be within
+the implemenation of a class to make it obvious that a method is being called on the same instance of
+the class, such as when a method is called on instance A, the method contains code to operate on this,
+which refers to instance A.
+
 R8.20 Zero, null, false, empty String
+
+What is the difference between the number zero, the null reference, the value false,
+and the empty string?
+
+The number zero is an int. When an int variable is created without initialization, it stores 0.
+The null reference can be assigned to any Object such as a String to indicate that the variable
+does not have a memory reference. The value false is a boolean. The empty string is a valid String
+with length 0.
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
