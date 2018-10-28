@@ -5,16 +5,62 @@ proInterfaces : Interfaces
 Review Exercises: 3 points each. Starting on page 456 of textbook Big Java. Place your answers in
 ReviewExercises.txt located in the root of this project.
 
-R9.1 Superclas and subclass
+R9.1 Superclass and subclass
+
+a. Superclass: Employee, Subclass: Manager
+b. Subclass: GraduateStudent, Superclass: Student
+c. Superclass: Person, Subclass: Student
+d. Superclass: Employee, Subclass: Professor
+e. Superclass: BankAccount, Subclass: CheckingAccount
+f. Superclass: Vehicle, Subclass: Car
+g. Superclass: Vehicle, Subclass: Minivan
+h. Superclass: Car, Subclass: Minivan
+i. Subclass: Truck, Superclass: Vehicle
+
 R9.2 superclass and subclass
+
+It is unlikely that you will implement methods unique to those subclasses (unique to Toaster,
+CarVacuum, etc) therefore there is no point in having subclasses.
+
 R9.4 SavingsAccount
+
+Which methods does the SavingsAccount class in How To 9.1
+inherit from its super- class? Which methods does it override?
+Which methods does it add?
+
+Inherit: deposit, getBalance
+Override: withdraw, monthEnd
+Add: setInterestRate
+
 R9.6 Sandwich
+
+a) and d) are legal.
+
 R9.7 Inheretence -use the UML diagram tool in IntelliJ and indicate to the grader where uml file is located
+
+R9_7/Package R9_7.png
+
 R9.8 Inheretence -use the UML diagram tool in IntelliJ and indicate to the grader where uml file is located
+
+R9_8/Package R9_8.png
+
 R9.9 Inheretence -use the UML diagram tool in IntelliJ and indicate to the grader where uml file is located
+
+R9_9/Package R9_9.png
+
 R9.10 Casting
+
+(BankAccount) x refers to an attempt to cast x as the an object of type BankAccount, and will only work if BankAccount
+is a subclass of what class x originally was. On the other hand (int) x will work on any numeric value as it
+simply converts x to an integer, taking the floor of x if x is a double or float.
+
 R9.11 instanceof operator
+
+a), b), d) will return true.
+
 R9.14 Edible interface
+
+a) and c) are legal. f) will compile BUT WILL FAIL AT RUNTIME.
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
