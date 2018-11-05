@@ -6,7 +6,7 @@ Review Exercises: 3 points each. Starting on page 501, and 543 of textbook Big J
 ReviewExercises.txt located in the root of this project.
 
 R10.5 Events
-R10.6 actionPerformed
+10.6 actionPerformed
 R10.11 Inner class and event-listeners
 R10.14 Object hierarchies
 R10.22 Graphic methods

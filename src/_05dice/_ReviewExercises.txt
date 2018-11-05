@@ -4,6 +4,84 @@
 
 
 
+R10.5 Events
+
+An event object captures a user action into a Java object that can be passed into a listener.
+An event source is the user interface component that generates the event.
+An event listener handles the event and executes code per the programmer's instructions.
+
+R10.6 actionPerformed
+
+The Java event handler library calls the actionPerformed method. It occurs once a user performs an action
+that is being listened for by the listener.
+
+R10.11 Inner class and event-listeners
+
+We use inner classes so that the listener can access the instance variables and methods of the enclosing class.
+If we did not have inner classes, we can still implement listeners, but we would need to include a reference
+to the Java object that we want to modify as a result of an event (e.g. a label).
+
+R10.14 Object hierarchies
+
+A method that is declared in JTextArea: public void setLineWrap(boolean wrap)
+A method that JTextArea inherits from JTextComponent: public void updateUI()
+A method that JTextArea inherits from JComponent: private static Rectangle fetchRectangle()
+
+R10.22 Graphic methods
+
+How would you modify the drawItalianFlag method in How To 10.1 to draw any flag with a white vertical
+ stripe in the middle and two arbitrary colors to the left and right?
+
+Accept two arbitrary colors as arguments to the method and call g.setColor with these colors as the explict argument
+in place of g.setColor(Color.GREEN) and g.setColor(Color.RED)
+
+R11.2 Layout managers
+
+With layout managers, you can avoid specifying specific positions for every single component (laborious) by using
+pre-existing layout sets such as grids, which fit many common use cases of where you would want to place components.
+
+R11.11 ButtonGroup
+
+Radio buttons require a group because if one of the buttons is selected by the user, all others need to be de-selected.
+This is not true of check boxes - multiple can be selected at once.
+
+R11.19 Types of Events
+
+A MouseEvent captures a specific action of the mouse. An ActionEvent is also an event, but usually captures user actions on
+objects such as buttons and text fields.
+
+R11.20 Events
+
+ActionEvent:
+
+ACTION_FIRST: The first number in the range of ids used for action events.
+ACTION_LAST: The last number in the range of ids used for action events.
+ACTION_PERFORMED: This event id indicates that a meaningful action occured.
+ALT_MASK: The alt modifier.
+CTRL_MASK: The control modifier.
+META_MASK: The meta modifier.
+SHIFT_MASK: The shift modifier.
+
+MouseEvent:
+
+BUTTON1: Indicates mouse button #1; used by getButton().
+BUTTON2: Indicates mouse button #2; used by getButton().
+BUTTON3: Indicates mouse button #3; used by getButton().
+MOUSE_CLICKED: The "mouse clicked" event.
+MOUSE_DRAGGED: The "mouse dragged" event.
+MOUSE_ENTERED: The "mouse entered" event.
+MOUSE_EXITED: The "mouse exited" event.
+MOUSE_FIRST: The first number in the range of ids used for mouse events.
+MOUSE_LAST: The last number in the range of ids used for mouse events.
+MOUSE_MOVED: The "mouse moved" event.
+MOUSE_PRESSED: The "mouse pressed" event.
+MOUSE_RELEASED: The "mouse released" event.
+MOUSE_WHEEL: The "mouse wheel" event.
+NOBUTTON: Indicates no mouse buttons; used by getButton().
 
 
+R11.21 ActionListener versus MouseListener
 
+This is because the action for ActionListener is pre-defined depending on the associated component: e.g. a button being
+clicked triggers the ActionListener. One the other hand, the MouseListener must implement all the possible combinations
+of mouse events that a user can execute.
