@@ -2,8 +2,105 @@
 # Use this file to answer Review Exercises from the Big Java textbook
 #########################################################################
 
+R12.1 OO Analysis and Design
 
+1. Write out requirements in plain english
+2. List the nouns and eliminate computed results or use common sense to get the Classes
+3. Determine behavior of the classes by observing verbs in the requirement and translate into methods ("Responsibilities")
+4. Identify relationships ("Collaborators)"
 
+R12.2 OO Analysis and Design
 
+Look at nouns in the requirements description
 
+R12.3 OO Analysis and Design
 
+Look at verbs in the requirements description
+
+R12.8 Relationships
+
+a) Aggregation
+b) Inheritance, assuming all TA's are students
+c) Inheritance
+d) Neither
+e) Aggregation
+f) Inheritance
+g) Neither
+h) Aggregation
+
+R12.11 CRC Cards (no need to draw them, just create a text version of the CRC card and put answers in ReviewExercises)
+
+Coin: (Responsibilities) Get coin value
+Cash Register: (Responsibilities) Record payment; (Collaborators) Coin
+
+R12.13 UML Diagram - Use the UML tool in IntelliJ. Indicate to the grader where this is located.
+
+R12_13/R12_13.png
+
+R12.14 UML Diagram and CRC - Use the UML tool in IntelliJ. Indicate to the grader where this is located.
+
+Driver: (Responsibilities) Read file; Get country info from file; (Collaborators) Country
+Country: (Responsibilities) Get country name; Get area; Get population; Get population density
+UML: R12_14/R12_14.png
+
+R12.16 Identifying objects from problem description
+
+VendingMachine, Product, Coin
+
+R12.18 Identifying objects from problem description
+
+Invoices are sent to customer addresses
+Invoices list products
+Customer has address
+Customer orders product
+Product shipped to customer address
+
+UML: R12_18/R12_18.png
+
+R12.19 imports and fully qualified names
+
+They can be re-written by including the full name of the package followed by a period and then the class
+used. e.g.
+
+public class BabyNames
+{
+   public static final int LIMIT = 50;
+
+   public static void main(String[] args) throws java.io.FileNotFoundException
+   {
+      java.util.Scanner in = new java.util.Scanner(new java.io.File("babynames.txt"));
+
+      double boyTotal = 0;
+      double girlTotal = 0;
+
+      while (boyTotal < LIMIT || girlTotal < LIMIT)
+      {
+         int rank = in.nextInt();
+         System.out.print(rank + " ");
+
+         boyTotal = processName(in, boyTotal);
+         girlTotal = processName(in, girlTotal);
+
+         System.out.println();
+      }
+
+      in.close();
+   }
+
+   /**
+      Reads name information, prints the name if total >= 0, and adjusts the total.
+      @param in the input stream
+      @param total the total percentage that should still be processed
+      @return the adjusted total
+   */
+   public static double processName(java.util.Scanner in, double total)
+   {
+      String name = in.next();
+      int count = in.nextInt();
+      double percent = in.nextDouble();
+
+      if (total < LIMIT) { System.out.print(name + " "); }
+      total = total + percent;
+      return total;
+   }
+}

@@ -1,0 +1,2 @@
+NOTE: Coin, Driver, Product, VendMachine classes started with Adam's labJava code as the base, per his permission during class.
+I added an interface for the vend machine operator and an option to choose product before inserting coins.

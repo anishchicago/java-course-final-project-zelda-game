@@ -6,10 +6,35 @@ Review Exercises: 3 points each. Starting on page 578 of textbook Big Java. Plac
 ReviewExercises.txt located in the root of this project.
 
 R12.1 OO Analysis and Design
+
+1. Write out requirements in plain english
+2. Consider turning nouns into classes ("Classes")
+3. Determine behavior of the classes by observing verbs in the requirement and translate into methods ("Responsibilities")
+4. Identify Relationships
+
 R12.2 OO Analysis and Design
+
+Look at nouns in the requirements description
+
 R12.3 OO Analysis and Design
+
+Look at verbs in the requirements description
+
 R12.8 Relationships
+
+a) Aggregation
+b) Inheritance, assuming TA's are students
+c) Inheritance
+d) Neither
+e) Aggregation
+f) Inheritance
+g) Neither
+h) Aggregation
+
 R12.11 CRC Cards (no need to draw them, just create a text version of the CRC card and put answers in ReviewExercises)
+
+
+
 R12.13 UML Diagram - Use the UML tool in IntelliJ. Indicate to the grader where this is located.
 R12.14 UML Diagram and CRC - Use the UML tool in IntelliJ. Indicate to the grader where this is located.
 R12.16 Identifying objects from problem description
@@ -24,6 +49,17 @@ replace the period with underscore. You will want a Driver class (with a static 
 
 35 points each
 P12.6 Arithmetic. You can write this as a console-app. No need to make it GUI.
+
+Write a program that teaches arithmetic to a young child. The program tests addition and subtraction.
+ In level 1, it tests only addition of numbers less than 10 whose sum is less than 10. In level 2,
+ it tests addition of arbitrary one-digit numbers. In level 3, it tests subtraction of one-digit numbers with a nonnegative difference.
+Generate random problems and get the player’s input. The player gets up to two tries per problem.
+Advance from one level to the next when the player has achieved a score of five points.
+
+Classes: Driver, Game (getPoints), Level, Question (abstract; getAnswer; getFirst; getSecond; getOperation),
+LevelOneQuestion, LevelTwoQuestion, LevelThreeQuestion
+
+
 P12.8 VendingMachine. You can write this as a console-app. No need to make it GUI.
 
 
