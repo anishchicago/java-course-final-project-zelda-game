@@ -3,7 +3,6 @@ package _08final.mvc.model;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-
 /**
  * Created by ag on 6/17/2015.
  */
@@ -25,7 +24,6 @@ public class GameOpsList extends LinkedList {
         }
     }
 
-
     public CollisionOp dequeue() {
         try {
             lock.lock();
@@ -33,6 +31,5 @@ public class GameOpsList extends LinkedList {
         } finally {
             lock.unlock();
         }
-
     }
 }

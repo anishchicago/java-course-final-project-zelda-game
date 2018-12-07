@@ -23,114 +23,47 @@
 
 
 
-IMPORTANT: WHATEVER GAME YOU DECIDE TO CREATE, YOU MUST EXTEND THE BASE-CODE PROVIDE TO YOU IN THIS PROJECT.
-FAILING TO EXTEND THIS BASECODE WILL RESULT IN A NON-NEGOTIABLE ZERO FOR YOUR FINAL PROJECT. NO EXCEPTIONS.
 
-Create a classic video game using the tools you've learned throughout the quarter. 
+Much thanks to John Moison and Mike Visilou for providing code.
 
-You have two options:
+There are two kinds of graphics in gaming, vector and raster. Vector sprites are composed a relatively small set of
+vertices. The computer then uses the verticies to draw a shape, typically a polygon, and renders these sprites with a stroke and fill operation.
+The advantage of vector graphics is that they typically (depending on the number of vertices) render much faster than raster, and they
+scale infinitely with no loss of fidelity or pixelation. Animation is also much easier with vector sprites, however vector graphics don't
+provide as much detail as raster.
 
-Option 1: Use the game engine to create a game other than Asteroids such as Galaga, Space Invaders, Missile Command,
-Qix, etc. You MUST extend the code base provided, but you would effectively ignore/delete the Asteroids model and create
-your own model.
+Raster sprites use raster files such as jpeg and png. Notwithstanding any compression, a raster graphic is effectly a two-dimensional array
+of pixels. The advantage of raster is that you are no longer limited to stroke-and-fill operations; any jpeg or png you can find online or create will
+suffice as a sprite and this means you can create a very detailed and rich graphical environment. However, the richness of raster comes at a cost.
+The rendering time for a raster sprite is almost always longer than a vector sprite. Raster animations, aside from simply moving or rotating the sprite, involve
+a series of individual files to produce a flipcard effect which is something I suggest you use sparingly or not at all.
 
-Option 2: Use the base code provided and extend the Asteroids model to create your own version of Asteroids. If you
-choose this option, you should expect to make your own special weapons, provide explosions with debris. Other options
-include a shield, hyperspace, firing UFOs, guided missiles, etc. You MUST extend the code base provided.
+Asteroids is a purely vector-based game, Mario is purely raster-based, and Sinistar is a hybrid. Chose your code-base depending on your own
+ game's graphics requirements.
 
-Jonathan will select the top six games. The six finalists will demonstrate their games and present their code and
-architecture, and the class will vote (noise-meter) on the best game. The winner will receive a token prize during an
-awards-ceremony/reception on the last day.
-
-**************************************************
-**************************************************
-**************************************************
-
-Many features of the game have already been implemented.  So, what else do we need to do?? Potentially a lot.
-
-At the very minimum, you need to:
-Implement debris.
-Implement scoring.
-When the falcon collides with a NewShipFloater, you should increment the number of falcons. 
-
-What else? It's your game, so use your imagination, but consider the following:
-
-Special weapons:
-You have an example of a special weapon (cruise missile). Consider creating other special weapons. You might consider
-spawning an explosion (friend) when your special weapon either hits a foe, or expires.
-
-Consider steerable missiles which activate steering while a particular key is in key-press state, and explodes (as well
-as returns steering control back to the falcon) upon key-release.
-
-Hyperspace: 
-As a defensive measure, you can implement a hyperspace to randomly move the falcon to another location on the screen. 
+The minimum requirements for your final project using the Asteroids code-base have not changed. However, ff you choose to extend mario or sinistar as your base,
+both of which are forks of the asteroids game engine, the only requirement is that the resultant source be at least 50% your own.
 
 
-Foes:
-Various UFOs.
-TitaniumAsteroid which appears at higher levels, has a special color, requires several hits before it explodes, changes
-color as it weakens, and spawns smaller versions of itself like Asteroid.
+Some interesting things to consider when using Mario as base:
 
-Consider heat-seeking missiles that are fired from a Foe; in that case you would override the move method of
-HeatSeekingMissile and adjust its orientation depending on the location of the target (the Falcon reference).
-
-Counter-measures:
-Consider defensive countermeasures like chaffing to throw your foe's heat-seeking weapons off their intended target
-(the Falcon). A chaff is a heat flare that acts as a decoy to a heat-seeking missile.
-
-Power-ups:
-You have an example of a power-up called NewShipFloater. Create other power-ups for special weapons and other goodies.
-These goodies should have time limits which would then be refelcted in a meter displayed in the margin.
-
-Shield:
-Create a shield for the falcon. Perhaps the shield changes color as it weakens, and perhaps you need to get a power-up
-to use the sheild for a limited period of time.
+Sprite.java has been refactored and much simplified to use raster graphics.
+Sprites no longer have circumscribing circles and collision detection is based on rectangles centers', widths', and heights'. This architecture
+lends itself well to games that exist in a grid, such as frogger, centipede, space invaders, pacman, and so on.
 
 
-Meters:
-Create color-coded meters that show graphically how much time is left on a power-up, goodie, shield, or other vital
-information.
+Some interesting things to consider when using Sinistar as a base:
 
-
-Falcon morphs:
-Consider morphing the falcon into various color/shape combinations as it receives power-ups (see Cruise to see how
-morphing is done). You are not limited to two morphs, create several if you want.
-
-
-Debris:
-The Sprite class has a method called public Point[] getObjectPoints(). You can use this to get the points which describe
-the Sprite an any given frame. It may be easier for you to create your own Debris class from scratch that implements
-Movable, rather than extending Sprite, but either way will work.
-
- 
-Special Levels:
-You may consider creating a labyrinth out of which the falcon must successfully navigate within a given time, without
-touching the walls, and acquiring goodies along the way.
-
-Other:
-I've just scratched the surface as far as possible mods to the game; use your imagination to come up with more features. 
-
-Some things to keep in mind. 
-
-1/ Sprite is essentially a shape circumscribed by a circle, which makes collision detection really easy. The down-side
-is that polar coordinates are difficult to work with. However, I created a method that allows you to create shapes using
-an ArrayList<Point> where the points are on a cartesian grid with 0,0 at the origin. When you add your points to the
-ArrayList, order matters, so that each point is adjascent to its neighbor in the ArrayList. The following ArrayList<Point>
-describes the shape of the cruise-missile prior to deploying its wings and accelerating. Just keep in mind that creating
-this ArrayList<Point> out-of-order will produce a jaggedy-shaped sprite. The following order is correct (though I could
-have traversed the points counter-clockwise with the same good result).
-
-
-		ArrayList<Point> pntAs = new ArrayList<Point>();
-		pntAs.add(new Point(0, 5)); //top point
-		pntAs.add(new Point(1, 3));  //right top point
-		pntAs.add(new Point(1, -2)); //right bottom point
-		pntAs.add(new Point(-1, -2)); // left bottom point
-		pntAs.add(new Point(-1, 3)); //left top point
-		assignPolorPointsAlts(pntAs);
+The Falcon no longer travels, but rather the world revolves around the falcon which remains in the center and whose view portal
+is shown in a minimap.
+Foes and crystals (power-ups) can easily track the faclon's position which always stays in the center of the view portal. This architecture lends
+itself well to to games which allow users to explore a world.
 
 
 
-Some addition info:
-the M key is for muting music. 
-the f-key is for firing the cruise missile. 
+
+
+
+
+
+

@@ -1,47 +1,57 @@
 package _08final.mvc.model;
 
-import _08final.mvc.controller.Game;
-
 import java.awt.*;
-import java.util.ArrayList;
+import java.io.File;
 
 public abstract class Sprite implements Movable {
+
 	//the center-point of this sprite
 	private Point pntCenter;
+    private int nInitCenterX, nInitCenterY;
+
 	//this causes movement; change in x and change in y
-	private double dDeltaX, dDeltaY;
-	//every sprite needs to know about the size of the gaming environ
-	private Dimension dim; //dim of the gaming environment
+	private int nDeltaX, nDeltaY;
 
 	//we need to know what team we're on
 	private Team mTeam;
+	public enum Direction {UP, DOWN, RIGHT, LEFT};
+    private Direction facingDirection;
 
-	//the radius of circumscibing circle
-	private int nRadius;
+    // Height and width of the sprite
+	private int nHeight;
+	private int nWidth;
 
-	private int nOrientation;
-	private int nExpiry; //natural mortality (short-living objects)
-	//the color of this sprite
-	private Color col;
 
-	//radial coordinates
-	//this game uses radial coordinates to render sprites
-	public double[] dLengths;
-	public double[] dDegrees;
-	
+    // Expiry team for this sprite
+    private int nDeadTimeLeft = 0;
+    private  boolean bDead;
 
-	//fade value for fading in and out
-	private int nFade;
+    private int maxHealth;
+    private int currHealth;
 
-	//these are used to draw the polygon. You don't usually need to interface with these
-	private Point[] pntCoords; //an array of points used to draw polygon
-	private int[] nXCoords;
-	private int[] nYCoords;
+    // top left corner coordinates
+    private Point pntPos;
+
+    // project directory with images
+    public static String strImageDir  = System.getProperty("user.dir") + File.separator + "src"
+                                        + File.separator + "_08final" + File.separator + "images" + File.separator;
+
+    // project directory with fonts
+    public static String strFontDir  = System.getProperty("user.dir") + File.separator + "src"
+            + File.separator + "_08final" + File.separator + "fonts" + File.separator;
+
+
+
+    public Sprite(int nCenterX, int nCenterY) {
+        nInitCenterX = nCenterX;
+        nInitCenterY = nCenterY;
+        setCenter(new Point(nCenterX,nCenterY));
+        bDead = false;
+    }
 
 
 	@Override
 	public Team getTeam() {
-		//default
 	  return mTeam;
 	}
 
@@ -49,120 +59,44 @@ public abstract class Sprite implements Movable {
 		mTeam = team;
 	}
 
-	public void move() {
+    public Direction getFacingDirection() {
+        return facingDirection;
+    }
 
-		Point pnt = getCenter();
-		double dX = pnt.x + getDeltaX();
-		double dY = pnt.y + getDeltaY();
-		
-		//this just keeps the sprite inside the bounds of the frame
-		if (pnt.x > getDim().width) {
-			setCenter(new Point(1, pnt.y));
+    // This move method is primarily used by non-moving objects like platform when the screen moves
+    // Other moving objects override to implement their own logic but also call this method
+    public void move(){
+        if (CommandCenter.getInstance().getMoveCountX() != 0) {
+            pntCenter.x+= CommandCenter.getInstance().getDeltaX();
+        }
+        if (CommandCenter.getInstance().getMoveCountY() != 0) {
+            pntCenter.y+= CommandCenter.getInstance().getDeltaY();
+        }
+    }
 
-		} else if (pnt.x < 0) {
-			setCenter(new Point(getDim().width - 1, pnt.y));
-		} else if (pnt.y > getDim().height) {
-			setCenter(new Point(pnt.x, 1));
+    // Set initial position for this sprite to be used when Link is respawned in the current level
+    public void initCenter() {
+        pntCenter.x = nInitCenterX;
+        pntCenter.y = nInitCenterY;
+    }
 
-		} else if (pnt.y < 0) {
-			setCenter(new Point(pnt.x, getDim().height - 1));
-		} else {
 
-			setCenter(new Point((int) dX, (int) dY));
-		}
-
+	public void setDeltaX(int nSet) {
+		nDeltaX = nSet;
 	}
 
-	public Sprite() {
-
-	//you can override this and many more in the subclasses
-		setDim(Game.DIM);
-		setColor(Color.white);
-		setCenter(new Point(Game.R.nextInt(Game.DIM.width),
-				Game.R.nextInt(Game.DIM.height)));
-
-
+	public void setDeltaY(int nSet) {
+		nDeltaY = nSet;
 	}
 
-	public void setExpire(int n) {
-		nExpiry = n;
-
+	public int getDeltaX() {
+		return nDeltaX;
 	}
 
-	public double[] getLengths() {
-		return this.dLengths;
-	}
+    public int getDeltaY() {
+        return nDeltaY;
+    }
 
-	public void setLengths(double[] dLengths) {
-		this.dLengths = dLengths;
-	}
-
-	public double[] getDegrees() {
-		return this.dDegrees;
-	}
-
-	public void setDegrees(double[] dDegrees) {
-		this.dDegrees = dDegrees;
-	}
-
-	public Color getColor() {
-		return col;
-	}
-
-	public void setColor(Color col) {
-		this.col = col;
-
-	}
-
-	public int points() {
-		//default is zero
-		return 0;
-	}
-
-	public int getExpire() {
-		return nExpiry;
-	}
-
-	public int getOrientation() {
-		return nOrientation;
-	}
-
-	public void setOrientation(int n) {
-		nOrientation = n;
-	}
-
-	public void setDeltaX(double dSet) {
-		dDeltaX = dSet;
-	}
-
-	public void setDeltaY(double dSet) {
-		dDeltaY = dSet;
-	}
-
-	public double getDeltaY() {
-		return dDeltaY;
-	}
-
-	public double getDeltaX() {
-		return dDeltaX;
-	}
-
-	public int getRadius() {
-		return nRadius;
-	}
-
-	public void setRadius(int n) {
-		nRadius = n;
-
-	}
-
-	public Dimension getDim() {
-		return dim;
-	}
-
-	public void setDim(Dimension dim) {
-		this.dim = dim;
-	}
 
 	public Point getCenter() {
 		return pntCenter;
@@ -172,140 +106,82 @@ public abstract class Sprite implements Movable {
 		pntCenter = pntParam;
 	}
 
-
-	public void setYcoord(int nValue, int nIndex) {
-		nYCoords[nIndex] = nValue;
-	}
-
-	public void setXcoord(int nValue, int nIndex) {
-		nXCoords[nIndex] = nValue;
-	}
-	
-	
-	public int getYcoord( int nIndex) {
-		return nYCoords[nIndex];// = nValue;
-	}
-
-	public int getXcoord( int nIndex) {
-		return nXCoords[nIndex];// = nValue;
-	}
-	
-	
-
-	public int[] getXcoords() {
-		return nXCoords;
-	}
-
-	public int[] getYcoords() {
-		return nYCoords;
-	}
-	
-	
-	public void setXcoords( int[] nCoords) {
-		 nXCoords = nCoords;
-	}
-
-	public void setYcoords(int[] nCoords) {
-		 nYCoords =nCoords;
-	}
-
-	protected double hypot(double dX, double dY) {
-		return Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
-	}
-
-	
-	//utility function to convert from cartesian to polar
-	//since it's much easier to describe a sprite as a list of cartesean points
-	//sprites (except Asteroid) should use the cartesean technique to describe the coordinates
-	//see Falcon or Bullet constructor for examples
-	protected double[] convertToPolarDegs(ArrayList<Point> pntPoints) {
-
-	   double[] dDegs = new double[pntPoints.size()];
-
-		int nC = 0;
-		for (Point pnt : pntPoints) {
-			dDegs[nC++]=(Math.toDegrees(Math.atan2(pnt.y, pnt.x))) * Math.PI / 180 ;
-		}
-		return dDegs;
-	}
-	//utility function to convert to polar
-	protected double[] convertToPolarLens(ArrayList<Point> pntPoints) {
-
-		double[] dLens = new double[pntPoints.size()];
-
-		//determine the largest hypotenuse
-		double dL = 0;
-		for (Point pnt : pntPoints)
-			if (hypot(pnt.x, pnt.y) > dL)
-				dL = hypot(pnt.x, pnt.y);
-
-		int nC = 0;
-		for (Point pnt : pntPoints) {
-			if (pnt.x == 0 && pnt.y > 0) {
-				dLens[nC] = hypot(pnt.x, pnt.y) / dL;
-			} else if (pnt.x < 0 && pnt.y > 0) {
-				dLens[nC] = hypot(pnt.x, pnt.y) / dL;
-			} else {
-				dLens[nC] = hypot(pnt.x, pnt.y) / dL;
-			}
-			nC++;
-		}
-
-		// holds <thetas, lens>
-		return dLens;
-
-	}
-
-	protected void assignPolarPoints(ArrayList<Point> pntCs) {
-		setDegrees(convertToPolarDegs(pntCs));
-		setLengths(convertToPolarLens(pntCs));
-
-	}
+	public Point getPos() {
+        return new Point(pntCenter.x - getWidth() / 2, pntCenter.y - getHeight() / 2);
+    }
 
 	@Override
     public void draw(Graphics g) {
-        nXCoords = new int[dDegrees.length];
-        nYCoords = new int[dDegrees.length];
-        //need this as well
-        pntCoords = new Point[dDegrees.length];
-        
-
-        for (int nC = 0; nC < dDegrees.length; nC++) {
-            nXCoords[nC] =    (int) (getCenter().x + getRadius() 
-                            * dLengths[nC] 
-                            * Math.sin(Math.toRadians(getOrientation()) + dDegrees[nC]));
-            nYCoords[nC] =    (int) (getCenter().y - getRadius()
-                            * dLengths[nC]
-                            * Math.cos(Math.toRadians(getOrientation()) + dDegrees[nC]));
-            
-            
-            //need this line of code to create the points which we will need for debris
-            pntCoords[nC] = new Point(nXCoords[nC], nYCoords[nC]);
-        }
-
-        g.setColor(getColor());
-        g.drawPolygon(getXcoords(), getYcoords(), dDegrees.length);
     }
-    
 
-	public Point[] getObjectPoints() {
-		return pntCoords;
-	}
-	
-	public void setObjectPoints(Point[] pntPs) {
-		 pntCoords = pntPs;
-	}
-	
-	public void setObjectPoint(Point pnt, int nIndex) {
-		 pntCoords[nIndex] = pnt;
-	}
+    public void setHeight(int nHeight) {
+        this.nHeight = nHeight;
+    }
 
-	public int getFadeValue() {
-		return nFade;
-	}
+    public void setWidth(int nWidth) {
+        this.nWidth = nWidth;
+    }
 
-	public void setFadeValue(int n) {
-		nFade = n;
-	}
+    public int getHeight() {
+        return nHeight;
+    }
+
+    public int getWidth() {
+        return nWidth;
+    }
+
+	public void setLeftDirection() {
+        facingDirection = Direction.LEFT;
+	};
+	public void setRightDirection() {
+        facingDirection = Direction.RIGHT;
+	};
+
+    public void setUpDirection() {
+        facingDirection = Direction.UP;
+    };
+
+    public void setDownDirection() {
+        facingDirection = Direction.DOWN;
+    };
+
+    public void setFacingDirection(Direction facingDirection) {
+        this.facingDirection = facingDirection;
+    }
+
+
+    public void setDead() {
+        this.bDead = true;
+    };
+
+    public boolean isDead() {
+        return bDead;
+    }
+
+
+    public int getDeadTimeLeft() {
+        return nDeadTimeLeft;
+    }
+
+
+    public int getMaxHealth() {
+        return maxHealth;
+    }
+
+    public void setMaxHealth(int maxHealth) {
+        this.maxHealth = maxHealth;
+    }
+
+    public double getCurrHealth() {
+        return currHealth;
+    }
+
+    public void setCurrHealth(int health) {
+        this.currHealth = health;
+    }
+
+    public void decrCurrHealth() {
+        this.currHealth--;
+    }
 
 }

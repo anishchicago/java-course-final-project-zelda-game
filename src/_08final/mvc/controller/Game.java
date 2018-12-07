@@ -3,80 +3,62 @@ package _08final.mvc.controller;
 import _08final.mvc.model.*;
 import _08final.mvc.view.GamePanel;
 import _08final.sounds.Sound;
-
 import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.geom.Area;
 import java.util.Random;
 
-// ===============================================
-// == This Game class is the CONTROLLER
-// ===============================================
+import static java.awt.event.KeyEvent.VK_N;
 
+/**
+ *
+ *  Date        Author      Description
+ *  ----        ------      -----------
+ *  06/05/16    Moison      Extended code to implement first two levels of Link
+ */
 public class Game implements Runnable, KeyListener {
 
-	// ===============================================
 	// FIELDS
-	// ===============================================
-
-	public static final Dimension DIM = new Dimension(1100, 900); //the dimension of the game.
+	public static final Dimension DIM = new Dimension(1020, 780); //the dimension of the game.
 	private GamePanel gmpPanel;
 	public static Random R = new Random();
 	public final static int ANI_DELAY = 45; // milliseconds between screen
 											// updates (animation)
+
+    public static final int GAME_MAX_LEVEL = 2; // Define max number of levels to determine if game is over.
 	private Thread thrAnim;
-	private int nLevel = 1;
 	private int nTick = 0;
+    private final int FOE_LEVEL_MULTIPLIER = 2; //Number of foes active based on level.
 
-	private boolean bMuted = true;
-	
+    private long lStartTime = System.currentTimeMillis();
 
+	private boolean bMuted = false;
 	private final int PAUSE = 80, // p key
 			QUIT = 81, // q key
-			LEFT = 37, // rotate left; left arrow
-			RIGHT = 39, // rotate right; right arrow
-			UP = 38, // thrust; up arrow
+			LEFT = 37, // move left
+			RIGHT = 39, // move right
+			UP = 38, // move up
+            DOWN = 40, // move down
 			START = 83, // s key
 			FIRE = 32, // space key
-			MUTE = 77, // m-key mute
+			MUTE = 77; // m-key mute
 
-	// for possible future use
-	// HYPER = 68, 					// d key
-	// SHIELD = 65, 				// a key arrow
-	// NUM_ENTER = 10, 				// hyp
-	 SPECIAL = 70; 					// fire special weapon;  F key
-
-	private Clip clpThrust;
 	private Clip clpMusicBackground;
-
-	private static final int SPAWN_NEW_SHIP_FLOATER = 1200;
-
-
-
-	// ===============================================
-	// ==CONSTRUCTOR
-	// ===============================================
 
 	public Game() {
 
 		gmpPanel = new GamePanel(DIM);
 		gmpPanel.addKeyListener(this);
-		clpThrust = Sound.clipForLoopFactory("whitenoise.wav");
-		clpMusicBackground = Sound.clipForLoopFactory("music-background.wav");
-	
-
+		//clpMusicBackground = Sound.clipForLoopFactory("Zelda_Classic.wav");
 	}
 
-	// ===============================================
-	// ==METHODS
-	// ===============================================
-
 	public static void main(String args[]) {
-		EventQueue.invokeLater(new Runnable() { // uses the Event dispatch thread from Java 5 (refactored)
+		EventQueue.invokeLater(new Runnable() {
 					public void run() {
 						try {
-							Game game = new Game(); // construct itself
+							Game game = new Game();
 							game.fireUpAnimThread();
 
 						} catch (Exception e) {
@@ -86,194 +68,369 @@ public class Game implements Runnable, KeyListener {
 				});
 	}
 
-	private void fireUpAnimThread() { // called initially
+	private void fireUpAnimThread() {
 		if (thrAnim == null) {
-			thrAnim = new Thread(this); // pass the thread a runnable object (this)
+			thrAnim = new Thread(this);
 			thrAnim.start();
 		}
 	}
 
-	// implements runnable - must have run method
+
 	public void run() {
 
-		// lower this thread's priority; let the "main" aka 'Event Dispatch'
-		// thread do what it needs to do first
 		thrAnim.setPriority(Thread.MIN_PRIORITY);
 
-		// and get the current time
-		long lStartTime = System.currentTimeMillis();
-
-		// this thread animates the scene
 		while (Thread.currentThread() == thrAnim) {
+
 			tick();
-			spawnNewShipFloater();
-			gmpPanel.update(gmpPanel.getGraphics()); // update takes the graphics context we must 
-														// surround the sleep() in a try/catch block
-														// this simply controls delay time between 
-														// the frames of the animation
 
-			//this might be a good place to check for collisions
-			checkCollisions();
-			//this might be a god place to check if the level is clear (no more foes)
-			//if the level is clear then spawn some big asteroids -- the number of asteroids 
-			//should increase with the level. 
-			checkNewLevel();
-
+            // Check items in order of priority
+            checkGameOver();
+            checkLevelClear();
+            checkWallCollision();
+            checkCollision();
+			gmpPanel.update(gmpPanel.getGraphics());
+			checkFoes();
+            addFoes();
+            processQueue();
 			try {
-				// The total amount of time is guaranteed to be at least ANI_DELAY long.  If processing (update) 
-				// between frames takes longer than ANI_DELAY, then the difference between lStartTime - 
-				// System.currentTimeMillis() will be negative, then zero will be the sleep time
 				lStartTime += ANI_DELAY;
-				Thread.sleep(Math.max(0,
-						lStartTime - System.currentTimeMillis()));
+				Thread.sleep(Math.max(0,lStartTime - System.currentTimeMillis()));
 			} catch (InterruptedException e) {
-				// just skip this frame -- no big deal
 				continue;
 			}
 		} // end while
 	} // end run
 
-	private void checkCollisions() {
+    // Check if level is clear after the completion of fireworks
+    private void checkLevelClear() {
+        if (CommandCenter.getInstance().isLevelClear()) {
+            CommandCenter.getInstance().getOpsList().enqueue(new Firework(Game.R.nextInt(Game.DIM.width),Game.R.nextInt(Game.DIM.height) - 300),
+                                                            CollisionOp.Operation.ADD);
+            for (Movable movFriend : CommandCenter.getInstance().getMovFriends()) {
+                if (movFriend instanceof Firework) {
+                    if (((Firework) movFriend).getExpiryCounter() > 0) {
+                        ((Firework) movFriend).decrExpiryCounter();
+                    } else {
+                        CommandCenter.getInstance().getOpsList().enqueue(movFriend, CollisionOp.Operation.REMOVE);
+                    }
+                }
+            }
+        } else  {
+            // Remove any left over fireworks from previous level
+            for (Movable movFriend : CommandCenter.getInstance().getMovFriends()) {
+                if (movFriend instanceof Firework) {
+                    CommandCenter.getInstance().getOpsList().enqueue(movFriend, CollisionOp.Operation.REMOVE);
+                }
+            }
+        }
+        if (CommandCenter.getInstance().isLevelClear() && CommandCenter.getInstance().getFlag().getCenter().y > 650) {
+            setNextLevel();
+        }
+    }
 
-		
+    // Check if Game is over and stop background music
+    private void checkGameOver() {
+        if (CommandCenter.getInstance().isGameOver()) {
+            stopLoopingSounds(clpMusicBackground);
+        }
+    }
 
-		Point pntFriendCenter, pntFoeCenter;
-		int nFriendRadiux, nFoeRadiux;
-
-		for (Movable movFriend : CommandCenter.getInstance().getMovFriends()) {
-			for (Movable movFoe : CommandCenter.getInstance().getMovFoes()) {
-
-				pntFriendCenter = movFriend.getCenter();
-				pntFoeCenter = movFoe.getCenter();
-				nFriendRadiux = movFriend.getRadius();
-				nFoeRadiux = movFoe.getRadius();
-
-				//detect collision
-				if (pntFriendCenter.distance(pntFoeCenter) < (nFriendRadiux + nFoeRadiux)) {
-
-					//falcon
-					if ((movFriend instanceof Falcon) ){
-						if (!CommandCenter.getInstance().getFalcon().getProtected()){
-							CommandCenter.getInstance().getOpsList().enqueue(movFriend, CollisionOp.Operation.REMOVE);
-							CommandCenter.getInstance().spawnFalcon(false);
-
-						}
-					}
-					//not the falcon
-					else {
-						CommandCenter.getInstance().getOpsList().enqueue(movFriend, CollisionOp.Operation.REMOVE);
-					}//end else
-					//kill the foe and if asteroid, then spawn new asteroids
-					killFoe(movFoe);
-					Sound.playSound("kapow.wav");
-
-				}//end if 
-			}//end inner for
-		}//end outer for
-
-
-		//check for collisions between falcon and floaters
-		if (CommandCenter.getInstance().getFalcon() != null){
-			Point pntFalCenter = CommandCenter.getInstance().getFalcon().getCenter();
-			int nFalRadiux = CommandCenter.getInstance().getFalcon().getRadius();
-			Point pntFloaterCenter;
-			int nFloaterRadiux;
-			
-			for (Movable movFloater : CommandCenter.getInstance().getMovFloaters()) {
-				pntFloaterCenter = movFloater.getCenter();
-				nFloaterRadiux = movFloater.getRadius();
-	
-				//detect collision
-				if (pntFalCenter.distance(pntFloaterCenter) < (nFalRadiux + nFloaterRadiux)) {
-
-					CommandCenter.getInstance().getOpsList().enqueue(movFloater, CollisionOp.Operation.REMOVE);
-					Sound.playSound("pacman_eatghost.wav");
-	
-				}//end if 
-			}//end inner for
-		}//end if not null
-		
+    // Method to draw background based on current level of game.
+	private void drawBackGround() {
 
 
-		//we are dequeuing the opsList and performing operations in serial to avoid mutating the movable arraylists while iterating them above
-		while(!CommandCenter.getInstance().getOpsList().isEmpty()){
-			CollisionOp cop =  CommandCenter.getInstance().getOpsList().dequeue();
-			Movable mov = cop.getMovable();
-			CollisionOp.Operation operation = cop.getOperation();
-
-			switch (mov.getTeam()){
-				case FOE:
-					if (operation == CollisionOp.Operation.ADD){
-						CommandCenter.getInstance().getMovFoes().add(mov);
-					} else {
-						CommandCenter.getInstance().getMovFoes().remove(mov);
-					}
-
-					break;
-				case FRIEND:
-					if (operation == CollisionOp.Operation.ADD){
-						CommandCenter.getInstance().getMovFriends().add(mov);
-					} else {
-						CommandCenter.getInstance().getMovFriends().remove(mov);
-					}
-					break;
-
-				case FLOATER:
-					if (operation == CollisionOp.Operation.ADD){
-						CommandCenter.getInstance().getMovFloaters().add(mov);
-					} else {
-						CommandCenter.getInstance().getMovFloaters().remove(mov);
-					}
-					break;
-
-				case DEBRIS:
-					if (operation == CollisionOp.Operation.ADD){
-						CommandCenter.getInstance().getMovDebris().add(mov);
-					} else {
-						CommandCenter.getInstance().getMovDebris().remove(mov);
-					}
-					break;
-
-
-			}
-
-		}
-		//a request to the JVM is made every frame to garbage collect, however, the JVM will choose when and how to do this
-		System.gc();
-		
-	}//end meth
-
-	private void killFoe(Movable movFoe) {
-		
-		if (movFoe instanceof Asteroid){
-
-			//we know this is an Asteroid, so we can cast without threat of ClassCastException
-			Asteroid astExploded = (Asteroid)movFoe;
-			//big asteroid 
-			if(astExploded.getSize() == 0){
-				//spawn two medium Asteroids
-				CommandCenter.getInstance().getOpsList().enqueue(new Asteroid(astExploded), CollisionOp.Operation.ADD);
-				CommandCenter.getInstance().getOpsList().enqueue(new Asteroid(astExploded), CollisionOp.Operation.ADD);
-
-			} 
-			//medium size aseroid exploded
-			else if(astExploded.getSize() == 1){
-				//spawn three small Asteroids
-				CommandCenter.getInstance().getOpsList().enqueue(new Asteroid(astExploded), CollisionOp.Operation.ADD);
-				CommandCenter.getInstance().getOpsList().enqueue(new Asteroid(astExploded), CollisionOp.Operation.ADD);
-				CommandCenter.getInstance().getOpsList().enqueue(new Asteroid(astExploded), CollisionOp.Operation.ADD);
-
-			}
-
-		} 
-
-		//remove the original Foe
-		CommandCenter.getInstance().getOpsList().enqueue(movFoe, CollisionOp.Operation.REMOVE);
 
 	}
 
-	//some methods for timing events in the game,
-	//such as the appearance of UFOs, floaters (power-ups), etc. 
+
+    // Method to draw the game level components
+    private void drawLevelGame() {
+
+	    GameOpsList gameOpsList = CommandCenter.getInstance().getOpsList();
+
+
+        gameOpsList.enqueue(new Wall(0, 0, 95, 768),CollisionOp.Operation.ADD);
+        gameOpsList.enqueue(new Wall(946, 0, 95, 768),CollisionOp.Operation.ADD);
+
+        gameOpsList.enqueue(new Wall(207, 0, 605, 71),CollisionOp.Operation.ADD);
+        gameOpsList.enqueue(new Wall(207, 760, 605, 4),CollisionOp.Operation.ADD);
+
+        gameOpsList.enqueue(new Wall(35, 108, 85, 85),CollisionOp.Operation.ADD);
+        gameOpsList.enqueue(new Wall(112, 39, 85, 85),CollisionOp.Operation.ADD);
+
+        gameOpsList.enqueue(new Wall(934, 51, 85, 85),CollisionOp.Operation.ADD);
+        gameOpsList.enqueue(new Wall(112, 39, 85, 85),CollisionOp.Operation.ADD);
+
+        gameOpsList.enqueue(new Wall(866, 682, 85, 85),CollisionOp.Operation.ADD);
+        gameOpsList.enqueue(new Wall(68, 682, 85, 85),CollisionOp.Operation.ADD);
+
+    }
+
+
+    // Method to check collision with friends and foes
+    private void checkCollision() {
+
+        if (CommandCenter.getInstance().getLink() != null && !CommandCenter.getInstance().isLevelClear()) {
+            Link link = CommandCenter.getInstance().getLink();
+
+            int nLinkHeight = link.getHeight();
+            int nLinkWidth =  link.getWidth();
+            int nLinkPosX = link.getPos().x;
+            int nLinkPosY = link.getPos().y;
+            int nFriendHeight, nFriendWidth, nFriendCenterX, nFriendCenterY;
+            int nFriendPosX, nFriendPosY;
+            for (Movable movFriend : CommandCenter.getInstance().getMovFriends()) {
+                if (!(movFriend instanceof Link)) {
+                    nFriendHeight = movFriend.getHeight();
+                    nFriendWidth = movFriend.getWidth();
+                    nFriendCenterX = movFriend.getCenter().x;
+                    nFriendCenterY = movFriend.getCenter().y;
+                    nFriendPosX = nFriendCenterX - nFriendWidth / 2;
+                    nFriendPosY = nFriendCenterY - nFriendHeight / 2;
+                    if (checkWithinRange(nLinkPosX,nLinkWidth,nFriendPosX,nFriendWidth)
+                            && checkWithinRange(nLinkPosY,nLinkHeight,nFriendPosY,nFriendHeight)) {
+                        if (movFriend instanceof Gem) {
+                            CommandCenter.getInstance().getOpsList().enqueue(movFriend, CollisionOp.Operation.REMOVE);
+                            Sound.playSound("Link_Gem.wav");
+                            CommandCenter.getInstance().incrCoinScore();
+                            CommandCenter.getInstance().addScore(((Gem) movFriend).getValue());
+                        } else if (movFriend instanceof Flag) {
+                            stopLoopingSounds(clpMusicBackground);
+                            CommandCenter.getInstance().addScore(Flag.FLAG_WORTH);
+                            CommandCenter.getInstance().setLevelClear(true);
+                        }
+
+                    }
+                }
+            }
+
+            int nFoeHeight, nFoeWidth, nFoeCenterX, nFoeCenterY, nFoePosX, nFoePosY;
+            for (Movable movFoe : CommandCenter.getInstance().getMovFoes()) {
+                nFoeHeight = movFoe.getHeight();
+                nFoeWidth = movFoe.getWidth();
+                nFoeCenterX = movFoe.getCenter().x;
+                nFoeCenterY = movFoe.getCenter().y;
+                nFoePosX = nFoeCenterX - nFoeWidth / 2;
+                nFoePosY = nFoeCenterY - nFoeHeight / 2;
+                if (checkWithinRange(nLinkPosX,nLinkWidth,nFoePosX,nFoeWidth)
+                    && checkWithinRange(nLinkPosY,nLinkHeight,nFoePosY,nFoeHeight)
+                    && !movFoe.isDead()) {
+                    if (!link.cannotRespondToMoveRequest()) {
+                        checkFighterBattle(link, movFoe);
+                    }
+
+                }
+                if (movFoe.isDead() && movFoe.getDeadTimeLeft() == 0) {
+                    if (movFoe instanceof Sprite) {
+                        Point pntFoeCenter = movFoe.getCenter();
+                        CommandCenter.getInstance().getOpsList().enqueue(
+                                new GreenGem(pntFoeCenter.x, pntFoeCenter.y), CollisionOp.Operation.ADD);
+                    }
+                    CommandCenter.getInstance().getOpsList().enqueue(movFoe, CollisionOp.Operation.REMOVE);
+                }
+
+            }
+
+        }
+
+    }
+
+    public void checkFighterBattle(Movable movFriend, Movable movFoe) {
+        if (movFriend instanceof Fighter && movFoe instanceof Fighter) {
+            if (canInflictDamage(((Fighter) movFriend),(Fighter) movFoe)) {
+                ((Fighter) movFoe).setHurt();
+                ((Fighter) movFriend).justInflictedDamage();
+            }
+            if (canInflictDamage(((Fighter) movFoe),(Fighter) movFriend)) {
+                ((Fighter) movFriend).setHurt();
+                ((Fighter) movFoe).justInflictedDamage();
+                Sound.playSound("Link_Hurt.wav");
+            }
+        }
+    }
+
+    // Check for collision with wall
+    private void checkWallCollision() {
+
+        for (Movable movPlatform : CommandCenter.getInstance().getMovPlatform()) {
+
+            Point pntPlatform = movPlatform.getCenter();
+
+            for (Movable movFriend : CommandCenter.getInstance().getMovFriends()) {
+
+                Point pntFriend = movFriend.getPos();
+
+                if ((movPlatform instanceof Wall && movFriend instanceof Fighter) &&
+                        checkWithinRange(pntFriend.x, movFriend.getWidth(), pntPlatform.x, movPlatform.getWidth())
+                        && checkWithinRange(pntFriend.y, movFriend.getHeight(), pntPlatform.y, movPlatform.getHeight())) {
+                    if (!((Fighter) movFriend).isParalyzed())
+                        ((Fighter) movFriend).deflect();
+
+                }
+            }
+
+            for (Movable movFoe : CommandCenter.getInstance().getMovFoes()) {
+
+                Point pntFoe = movFoe.getPos();
+
+                if ((movPlatform instanceof Wall && movFoe instanceof Fighter) &&
+                        checkWithinRange(pntFoe.x, movFoe.getWidth(), pntPlatform.x, movPlatform.getWidth())
+                        && checkWithinRange(pntFoe.y, movFoe.getHeight(), pntPlatform.y, movPlatform.getHeight())) {
+                    if (!((Fighter) movFoe).isParalyzed()) {
+                        ((Fighter) movFoe).deflect();
+                        ((Fighter) movFoe).forceMoveInOppositeDirection();
+                    }
+                }
+            }
+
+        }
+
+    }
+
+
+    // homing and inter-foe collisions (lol)
+
+    private void checkFoes() {
+
+        // all other foes
+
+        for (Movable movFoe1 : CommandCenter.getInstance().getMovFoes()) {
+
+            if (CommandCenter.getInstance().getLink() != null) {
+                Link link = CommandCenter.getInstance().getLink();
+
+                if (movFoe1 instanceof Fighter) {
+
+                    if (!((Fighter)(movFoe1)).cannotRespondToMoveRequest()) {
+
+                        int pixelsPerMove = ((Fighter) movFoe1).getDeltaPerMove();
+
+                        int nLinkX = link.getCenter().x;
+                        int nLinkY = link.getCenter().y;
+
+                        int nLinkFoeXDist = movFoe1.getCenter().x - nLinkX;
+                        int nLinkFoeYDist = movFoe1.getCenter().y - nLinkY;
+
+
+                        if (Math.abs(nLinkFoeXDist) + pixelsPerMove >= Math.abs(nLinkFoeYDist)) {
+                            if (nLinkFoeXDist > pixelsPerMove * 5)
+                                ((Fighter) (movFoe1)).moveLeft();
+                            else if (nLinkFoeXDist < - pixelsPerMove * 5)
+                                ((Fighter) (movFoe1)).moveRight();
+                            else ((Fighter) (movFoe1)).attack();
+                        } else {
+                            if (nLinkFoeYDist > pixelsPerMove * 5)
+                                ((Fighter) (movFoe1)).moveUp();
+                            else if (nLinkFoeYDist < - pixelsPerMove * 5)
+                                ((Fighter) (movFoe1)).moveDown();
+                            else ((Fighter) (movFoe1)).attack();
+                        }
+                    }
+                }
+            }
+
+
+            Point pntMovFoe1 = movFoe1.getCenter();
+
+            for (Movable movFoe2 : CommandCenter.getInstance().getMovFoes()) {
+
+                if (movFoe1 != movFoe2) {
+
+                    Point pntMovFoe2 = movFoe2.getPos();
+
+                    if ((movFoe1 instanceof Fighter && movFoe2 instanceof Fighter) &&
+                            checkWithinRange(pntMovFoe2.x, movFoe2.getWidth(), pntMovFoe1.x, movFoe1.getWidth())
+                            && checkWithinRange(pntMovFoe2.y, movFoe2.getHeight(), pntMovFoe1.y, movFoe1.getHeight())) {
+                        if (!((Fighter) movFoe1).cannotRespondToMoveRequest()) {
+
+                            ((Fighter) movFoe1).forceMoveInOppositeDirection(((Fighter) movFoe2).getFacingDirection());
+                        }
+
+                        if (!((Fighter) movFoe2).cannotRespondToMoveRequest()) {
+
+                            ((Fighter) movFoe2).forceMoveInSameDirection();
+                        }
+                    }
+                }
+            }
+        }
+
+        }
+
+
+    public boolean canInflictDamage(Fighter fighterAttacker, Fighter fighterUnderAttack) {
+        if (!fighterUnderAttack.isVulnerable()) return false;
+        Shape myFighterKillZone = fighterAttacker.getImgFighterKillZone();
+        Shape otherFighterVulnerableZone = fighterUnderAttack.getImgFighterVulnerableZone();
+        if (myFighterKillZone == null || otherFighterVulnerableZone == null) return false;
+        Area myFighterKillZoneArea = new Area(myFighterKillZone);
+        myFighterKillZoneArea.intersect(new Area(otherFighterVulnerableZone));
+        return !myFighterKillZoneArea.isEmpty();
+    }
+
+    // Spawn a foes based on their intro interval but limit based on level multiplier
+    // Ensure number of foes are proportionate to game level
+    private void addFoes() {
+        if (CommandCenter.getInstance().getLevel() != 0) {
+
+            if (getTick() % (6000 /ANI_DELAY/CommandCenter.getInstance().getLevel()) == 0
+                    && CommandCenter.getInstance().getMovFoes().size() < CommandCenter.getInstance().getLevel() * FOE_LEVEL_MULTIPLIER){
+                CommandCenter.getInstance().spawnOctorok();
+            }
+
+            if (getTick() % (12000 /ANI_DELAY/CommandCenter.getInstance().getLevel()) == 0
+                    && CommandCenter.getInstance().getMovFoes().size() < CommandCenter.getInstance().getLevel() * FOE_LEVEL_MULTIPLIER){
+                CommandCenter.getInstance().spawnDarknut();
+            }
+
+        }
+    }
+
+    private void processQueue() {
+
+        //we are dequeuing the opsList and performing operations in serial to avoid mutating the movable arraylists while iterating them above
+        while(!CommandCenter.getInstance().getOpsList().isEmpty()){
+            CollisionOp cop =  CommandCenter.getInstance().getOpsList().dequeue();
+            Movable mov = cop.getMovable();
+            CollisionOp.Operation operation = cop.getOperation();
+
+            switch (mov.getTeam()){
+                case FOE:
+                    if (operation == CollisionOp.Operation.ADD){
+                        CommandCenter.getInstance().getMovFoes().add(mov);
+                    } else {
+                        CommandCenter.getInstance().getMovFoes().remove(mov);
+                    }
+                    break;
+                case FRIEND:
+                    if (operation == CollisionOp.Operation.ADD){
+                        CommandCenter.getInstance().getMovFriends().add(mov);
+                    } else {
+                        CommandCenter.getInstance().getMovFriends().remove(mov);
+                    }
+                    break;
+
+                case BACKGROUND:
+                    if (operation == CollisionOp.Operation.ADD){
+                        CommandCenter.getInstance().getMovBackground().add(mov);
+                    } else {
+                        CommandCenter.getInstance().getMovBackground().remove(mov);
+                    }
+                    break;
+                case PLATFORM:
+                    if (operation == CollisionOp.Operation.ADD){
+                        CommandCenter.getInstance().getMovPlatform().add(mov);
+                    } else {
+                        CommandCenter.getInstance().getMovPlatform().remove(mov);
+                    }
+                    break;
+            }
+        }
+        System.gc();
+    }//end meth
+
+	//some methods for timing events in the game, such as the appearance of UFOs, floaters (power-ups), etc.
 	public void tick() {
 		if (nTick == Integer.MAX_VALUE)
 			nTick = 0;
@@ -285,116 +442,80 @@ public class Game implements Runnable, KeyListener {
 		return nTick;
 	}
 
-	private void spawnNewShipFloater() {
-		//make the appearance of power-up dependent upon ticks and levels
-		//the higher the level the more frequent the appearance
-		if (nTick % (SPAWN_NEW_SHIP_FLOATER - nLevel * 7) == 0) {
-			//CommandCenter.getInstance().getMovFloaters().enqueue(new NewShipFloater());
-			CommandCenter.getInstance().getOpsList().enqueue(new NewShipFloater(), CollisionOp.Operation.ADD);
-		}
-	}
-
 	// Called when user presses 's'
 	private void startGame() {
+		//clpMusicBackground.loop(Clip.LOOP_CONTINUOUSLY);
 		CommandCenter.getInstance().clearAll();
 		CommandCenter.getInstance().initGame();
-		CommandCenter.getInstance().setLevel(0);
 		CommandCenter.getInstance().setPlaying(true);
 		CommandCenter.getInstance().setPaused(false);
-		//if (!bMuted)
-		   // clpMusicBackground.loop(Clip.LOOP_CONTINUOUSLY);
+		drawBackGround();
+        drawLevelGame();
+        CommandCenter.getInstance().spawnLink(true);
 	}
 
-	//this method spawns new asteroids
-	private void spawnAsteroids(int nNum) {
-		for (int nC = 0; nC < nNum; nC++) {
-			//Asteroids with size of zero are big
-			CommandCenter.getInstance().getOpsList().enqueue(new Asteroid(0), CollisionOp.Operation.ADD);
 
-		}
-	}
-	
-	
-	private boolean isLevelClear(){
-		//if there are no more Asteroids on the screen
-		boolean bAsteroidFree = true;
-		for (Movable movFoe : CommandCenter.getInstance().getMovFoes()) {
-			if (movFoe instanceof Asteroid){
-				bAsteroidFree = false;
-				break;
-			}
-		}
-		
-		return bAsteroidFree;
-
-		
-	}
-	
-	private void checkNewLevel(){
-		
-		if (isLevelClear() ){
-			if (CommandCenter.getInstance().getFalcon() !=null)
-				CommandCenter.getInstance().getFalcon().setProtected(true);
-			
-			spawnAsteroids(CommandCenter.getInstance().getLevel() + 2);
-			CommandCenter.getInstance().setLevel(CommandCenter.getInstance().getLevel() + 1);
-
-		}
-	}
-	
-	
-	
-
-	// Varargs for stopping looping-music-clips
+    // Varargs for stopping looping-music-clips
 	private static void stopLoopingSounds(Clip... clpClips) {
 		for (Clip clp : clpClips) {
 			clp.stop();
 		}
 	}
 
-	// ===============================================
-	// KEYLISTENER METHODS
-	// ===============================================
-
 	@Override
 	public void keyPressed(KeyEvent e) {
-		Falcon fal = CommandCenter.getInstance().getFalcon();
+		Link link = CommandCenter.getInstance().getLink();
 		int nKey = e.getKeyCode();
-		// System.out.println(nKey);
 
 		if (nKey == START && !CommandCenter.getInstance().isPlaying())
 			startGame();
 
-		if (fal != null) {
-
+		if (link != null) {
 			switch (nKey) {
 			case PAUSE:
 				CommandCenter.getInstance().setPaused(!CommandCenter.getInstance().isPaused());
-				if (CommandCenter.getInstance().isPaused())
-					stopLoopingSounds(clpMusicBackground, clpThrust);
-				else
-					clpMusicBackground.loop(Clip.LOOP_CONTINUOUSLY);
-				break;
+				//if (CommandCenter.getInstance().isPaused())
+					//stopLoopingSounds(clpMusicBackground);
+				//else
+					//clpMusicBackground.loop(Clip.LOOP_CONTINUOUSLY);
+				//break;
 			case QUIT:
 				System.exit(0);
 				break;
-			case UP:
-				fal.thrustOn();
-				if (!CommandCenter.getInstance().isPaused())
-					clpThrust.loop(Clip.LOOP_CONTINUOUSLY);
-				break;
-			case LEFT:
-				fal.rotateLeft();
-				break;
-			case RIGHT:
-				fal.rotateRight();
-				break;
-
-			// possible future use
-			// case KILL:
-			// case SHIELD:
-			// case NUM_ENTER:
-
+            case UP:
+                if (!CommandCenter.getInstance().getLink().cannotRespondToMoveRequest()) {
+                    moveUp();
+                }
+                break;
+            case DOWN:
+                if (!CommandCenter.getInstance().getLink().cannotRespondToMoveRequest()) {
+                    moveDown();
+                }
+                break;
+            case RIGHT:
+                if (!CommandCenter.getInstance().getLink().cannotRespondToMoveRequest()) {
+                    moveRight();
+                }
+                break;
+            case LEFT:
+                if (!CommandCenter.getInstance().getLink().cannotRespondToMoveRequest()) {
+                    moveLeft();
+                }
+                break;
+            // Cheat key to jump to next level
+            case FIRE:
+                if (!CommandCenter.getInstance().getLink().isDead() && !CommandCenter.getInstance().getLink().cannotRespondToMoveRequest()) {
+                    attack();
+                    Sound.playSound("Link_Attack_1.wav");
+                }
+                break;
+            case VK_N:
+                //stopLoopingSounds(clpMusicBackground);
+                CommandCenter.getInstance().getLink().setCenter(new Point(
+                        CommandCenter.getInstance().getFlag().getCenter().x -26,
+                        CommandCenter.getInstance().getFlag().getCenter().y
+                ));
+                break;
 			default:
 				break;
 			}
@@ -403,46 +524,22 @@ public class Game implements Runnable, KeyListener {
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		Falcon fal = CommandCenter.getInstance().getFalcon();
+		Link link = CommandCenter.getInstance().getLink();
 		int nKey = e.getKeyCode();
-		 System.out.println(nKey);
 
-		if (fal != null) {
+		if (link != null) {
 			switch (nKey) {
-			case FIRE:
-				CommandCenter.getInstance().getOpsList().enqueue(new Bullet(fal), CollisionOp.Operation.ADD);
-				Sound.playSound("laser.wav");
-				break;
-				
-			//special is a special weapon, current it just fires the cruise missile. 
-			case SPECIAL:
-				CommandCenter.getInstance().getOpsList().enqueue(new Cruise(fal), CollisionOp.Operation.ADD);
-				//Sound.playSound("laser.wav");
-				break;
-				
-			case LEFT:
-				fal.stopRotating();
-				break;
-			case RIGHT:
-				fal.stopRotating();
-				break;
-			case UP:
-				fal.thrustOff();
-				clpThrust.stop();
-				break;
-				
+
 			case MUTE:
 				if (!bMuted){
-					stopLoopingSounds(clpMusicBackground);
+					//stopLoopingSounds(clpMusicBackground);
 					bMuted = !bMuted;
-				} 
+				}
 				else {
-					clpMusicBackground.loop(Clip.LOOP_CONTINUOUSLY);
+					//clpMusicBackground.loop(Clip.LOOP_CONTINUOUSLY);
 					bMuted = !bMuted;
 				}
 				break;
-				
-				
 			default:
 				break;
 			}
@@ -450,10 +547,86 @@ public class Game implements Runnable, KeyListener {
 	}
 
 	@Override
-	// Just need it b/c of KeyListener implementation
 	public void keyTyped(KeyEvent e) {
 	}
 
-}
+    public boolean checkWithinRange(int nObj1Pos, int nObj1Length, int nObj2Pos, int nObj2Length) {
+        if ((nObj1Pos + nObj1Length >= nObj2Pos && nObj1Pos <= nObj2Pos)
+                || (nObj2Pos + nObj2Length >= nObj1Pos && nObj2Pos <= nObj1Pos)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    // Method to move right when the right arrow key is pressed. If Link is beyond his screen limit, move everything else to left
+    private void moveRight() {
+        //if (CommandCenter.getInstance().getLink().getCenter().getX() > Link.SCREEN_RIGHT_LIMIT) {
+        //    moveEverythingLeft();
+        //} else {
+        CommandCenter.getInstance().getLink().moveRight();
+        //}
+    }
+
+    // Similar to moveRight method but this is for moving left.
+    private void moveLeft() {
+        //if (CommandCenter.getInstance().getLink().getCenter().getX() > Link.SCREEN_RIGHT_LIMIT) {
+        //    moveEverythingLeft();
+        //} else {
+        CommandCenter.getInstance().getLink().moveLeft();
+        //}
+    }
+
+    // Method to move up when the up arrow key is pressed. If Link is beyond his screen limit, move everything else to down
+    private void moveUp() {
+        //if (CommandCenter.getInstance().getLink().getCenter().getX() > Link.SCREEN_RIGHT_LIMIT) {
+        //    moveEverythingLeft();
+        //} else {
+            CommandCenter.getInstance().getLink().moveUp();
+        //}
+    }
+
+    // Method to move up when the up arrow key is pressed. If Link is beyond his screen limit, move everything else to down
+    private void moveDown() {
+        //if (CommandCenter.getInstance().getLink().getCenter().getX() > Link.SCREEN_RIGHT_LIMIT) {
+        //    moveEverythingLeft();
+        //} else {
+            CommandCenter.getInstance().getLink().moveDown();
+        //}
+    }
+
+    private void attack() {
+        CommandCenter.getInstance().getLink().attack();
+    }
+
+
+    // Method to increment to next level of the game.
+    private void setNextLevel() {
+            CommandCenter.getInstance().setLevelClear(false);
+            CommandCenter.getInstance().setNextLevel();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            switch (CommandCenter.getInstance().getLevel()) {
+                case 2:
+                    //clpMusicBackground = Sound.clipForLoopFactory("Zelda_Theme.wav");
+                    break;
+                default:
+                    //clpMusicBackground = Sound.clipForLoopFactory("Zelda_Theme.wav");
+                    break;
+            }
+            //clpMusicBackground.loop(Clip.LOOP_CONTINUOUSLY);
+            CommandCenter.getInstance().clearAll();
+            CommandCenter.getInstance().setNumLinks(5);
+            CommandCenter.getInstance().setCoins(0);
+            drawBackGround();
+            drawLevelGame();
+            CommandCenter.getInstance().spawnLink(true);
+            CommandCenter.getInstance().setTimeLeft(300);
+
+        }
+
+}
 
