@@ -14,7 +14,6 @@ public class CommandCenter {
 	private  long lScore;
 	private  int nCoins;
 	private Link link;
-    private Flag flag;
 	private  boolean bPlaying;
 	private  boolean bPaused;
     private int nSecondsLeft;
@@ -117,9 +116,11 @@ public class CommandCenter {
 		this.bPaused = bPaused;
 	}
 	
-	public  boolean isGameOver() {		//if the number of Links is zero or seconds left is zero, then game over
-		if ((getNumLinks() == 0 || nSecondsLeft == 0 || nLevel > Game.GAME_MAX_LEVEL) && nLevel != 0) {
-			return true;
+	public  boolean isGameOver() {		//if Link is dead then game over
+	    Link link = CommandCenter.getInstance().getLink();
+		if (link != null) {
+		    if (link.isDead() && link.getDeadTimeLeft() <= 0)
+			    return true;
 		}
 		return false;
 	}
@@ -132,13 +133,6 @@ public class CommandCenter {
         nLevel++;
     }
 
-    public void setFlag(Flag flag) {
-        this.flag = flag;
-    }
-
-    public Flag getFlag() {
-        return flag;
-    }
 
     public boolean isLevelClear() {
         return bLevelClear;

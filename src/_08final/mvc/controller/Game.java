@@ -104,35 +104,14 @@ public class Game implements Runnable, KeyListener {
 
     // Check if level is clear after the completion of fireworks
     private void checkLevelClear() {
-        if (CommandCenter.getInstance().isLevelClear()) {
-            CommandCenter.getInstance().getOpsList().enqueue(new Firework(Game.R.nextInt(Game.DIM.width),Game.R.nextInt(Game.DIM.height) - 300),
-                                                            CollisionOp.Operation.ADD);
-            for (Movable movFriend : CommandCenter.getInstance().getMovFriends()) {
-                if (movFriend instanceof Firework) {
-                    if (((Firework) movFriend).getExpiryCounter() > 0) {
-                        ((Firework) movFriend).decrExpiryCounter();
-                    } else {
-                        CommandCenter.getInstance().getOpsList().enqueue(movFriend, CollisionOp.Operation.REMOVE);
-                    }
-                }
-            }
-        } else  {
-            // Remove any left over fireworks from previous level
-            for (Movable movFriend : CommandCenter.getInstance().getMovFriends()) {
-                if (movFriend instanceof Firework) {
-                    CommandCenter.getInstance().getOpsList().enqueue(movFriend, CollisionOp.Operation.REMOVE);
-                }
-            }
-        }
-        if (CommandCenter.getInstance().isLevelClear() && CommandCenter.getInstance().getFlag().getCenter().y > 650) {
-            setNextLevel();
-        }
+
     }
 
     // Check if Game is over and stop background music
     private void checkGameOver() {
         if (CommandCenter.getInstance().isGameOver()) {
-            stopLoopingSounds(clpMusicBackground);
+
+            //stopLoopingSounds(clpMusicBackground);
         }
     }
 
@@ -195,10 +174,6 @@ public class Game implements Runnable, KeyListener {
                             Sound.playSound("Link_Gem.wav");
                             CommandCenter.getInstance().incrCoinScore();
                             CommandCenter.getInstance().addScore(((Gem) movFriend).getValue());
-                        } else if (movFriend instanceof Flag) {
-                            stopLoopingSounds(clpMusicBackground);
-                            CommandCenter.getInstance().addScore(Flag.FLAG_WORTH);
-                            CommandCenter.getInstance().setLevelClear(true);
                         }
 
                     }
@@ -510,11 +485,7 @@ public class Game implements Runnable, KeyListener {
                 }
                 break;
             case VK_N:
-                //stopLoopingSounds(clpMusicBackground);
-                CommandCenter.getInstance().getLink().setCenter(new Point(
-                        CommandCenter.getInstance().getFlag().getCenter().x -26,
-                        CommandCenter.getInstance().getFlag().getCenter().y
-                ));
+
                 break;
 			default:
 				break;
