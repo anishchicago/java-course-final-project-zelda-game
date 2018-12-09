@@ -21,8 +21,6 @@ public abstract class Fighter extends Sprite {
     private Shape imgFighterTempVulnerableZone;
     private Shape imgFighterTempKillZone;
 
-    private boolean bInit = true;
-
     private int nFighterDeadTimeLeft = 0;
     private int nFighterHurtTimeLeft = 0;
     private int nFighterParalyzedTimeLeft = 0;
@@ -92,8 +90,6 @@ public abstract class Fighter extends Sprite {
         Graphics2D g2d = (Graphics2D)g;
         g2d.drawImage(imgFighter, getPos().x,
                 getPos().y,null);
-
-
     }
 
 
@@ -133,7 +129,7 @@ public abstract class Fighter extends Sprite {
     public void attack() {
         if (nAttackIncrCount == 0) {
             this.nAttackIncrCount = defaultAttackSteps;
-            move();
+            if (!cannotRespondToMoveRequest()) move();
         }
     }
 
@@ -440,7 +436,7 @@ public abstract class Fighter extends Sprite {
     }
 
     public void paralyze() {
-        this.nFighterParalyzedTimeLeft = 5;
+        this.nFighterParalyzedTimeLeft = 10;
         this.isParalyzed = true;
     }
 

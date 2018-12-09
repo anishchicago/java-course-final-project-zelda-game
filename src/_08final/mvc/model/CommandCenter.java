@@ -119,7 +119,7 @@ public class CommandCenter {
 	public  boolean isGameOver() {		//if Link is dead then game over
 	    Link link = CommandCenter.getInstance().getLink();
 		if (link != null) {
-		    if (link.isDead() && link.getDeadTimeLeft() <= 0)
+		    if (link.isDead() && link.getFighterDeadTimeLeft() <= 0)
 			    return true;
 		}
 		return false;

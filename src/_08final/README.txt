@@ -1,4 +1,3 @@
-## Press the "n" key to complete the level by taking down the flag and releasing the fireworks.
 
 The idea for this project was to explore something similar to the Mario game, in a more 3 dimensional way a la classic
 Legend of Zelda games.

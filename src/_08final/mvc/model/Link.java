@@ -214,7 +214,7 @@ public class Link extends Fighter {
 
     @Override
     public Shape getImgFighterDefaultVulnerableZone() {
-        return new Ellipse2D.Double(this.getPos().x + 5, this.getPos().y + 18, 28, 28);
+        return new Ellipse2D.Double(this.getPos().x + 5, this.getPos().y + 15, 30, 30);
     }
 
     @Override

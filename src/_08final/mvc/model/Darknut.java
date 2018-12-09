@@ -230,7 +230,7 @@ public class Darknut extends Fighter {
 
     @Override
     public Shape getImgFighterDefaultVulnerableZone() {
-        return new Ellipse2D.Double(this.getPos().x + 11, this.getPos().y + 50, 45, 45);
+        return new Ellipse2D.Double(this.getPos().x + 11, this.getPos().y + 42, 45, 45);
     }
 
     @Override
@@ -239,7 +239,7 @@ public class Darknut extends Fighter {
     }
 
     public void justInflictedDamage() {
-        this.paralyze(100);
+        this.paralyze(30);
     }
     
 }

@@ -69,9 +69,9 @@ public class GamePanel extends JPanel {
 
 
         // Draw Link's total score
-		g2D.drawString("FORCE COLLECTED", nFontWidth - 25, nFontHeight + 20);
+		g2D.drawString("FORCE COLLECTED", nFontWidth - 20, nFontHeight + 20);
         strDisplay = String.format("%05d",CommandCenter.getInstance().getScore());
-		g2D.drawString(strDisplay, nFontWidth + 33, nFontHeight + 45);
+		g2D.drawString(strDisplay, nFontWidth + 28, nFontHeight + 45);
 
         // Draw coin score
         gemScore.draw(g2D);
